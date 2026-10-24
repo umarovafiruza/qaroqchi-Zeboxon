@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a0f07">
+  <title>Xazina Qidirish: Qaroqchilar Oroli</title>
+  <!-- Google Fonts: Retro Pixel Art shrifti -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Asosiy o'yin konteyneri -->
+  <div id="game-wrapper">
+    <div id="game-container">
+      
+      <!-- O'yin Canvas'i -->
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- O'yin yuqori interfeysi (HUD) -->
+      <header id="game-hud" class="hud-panel hidden">
+        <div class="hud-left">
+          <!-- Hayot (yuraklar) -->
+          <div class="hud-item hearts-box" title="Hayotlar">
+            <span class="hud-label">HAYOT:</span>
+            <span id="hud-hearts" class="hearts-container">❤️❤️❤️</span>
+          </div>
+          <!-- Kalit holati -->
+          <div class="hud-item key-box" title="Xazina kaliti">
+            <span class="hud-label">KALIT:</span>
+            <span id="hud-key" class="key-indicator uncollected">🔑</span>
+          </div>
+          <!-- Matematik Qochish (Q) -->
+          <div class="hud-item escape-box" title="Dushmandan qochish (Q)">
+            <button id="btn-hud-escape" class="btn-hud-escape ready">⚡ QOCHISH [Q]</button>
+          </div>
+        </div>
+
+        <div class="hud-center">
+          <!-- Ishora tizimi: Kompas / Masofa detektori -->
+          <div class="hud-item compass-box" id="compass-indicator" title="Ishora tizimi">
+            <span class="compass-needle" id="compass-needle">🧭</span>
+            <span class="compass-text" id="compass-text">Xazina qidirilmoqda...</span>
+          </div>
+          <!-- Bosqich Timeri -->
+          <div class="hud-item timer-box" id="timer-box" title="Bosqich vaqti">
+            <span class="timer-icon" id="timer-icon">⏱️</span>
+            <span id="hud-timer" class="hud-val timer-val">01:30</span>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <!-- Bosqich -->
+          <div class="hud-item level-box">
+            <span class="hud-label">BOSQICH:</span>
+            <span id="hud-level" class="hud-val">1/10</span>
+            <span id="hud-level-name" class="hud-level-name">Tinch Sohil</span>
+          </div>
+          <!-- Ball -->
+          <div class="hud-item score-box">
+            <span class="hud-label">BALL:</span>
+            <span id="hud-score" class="hud-val">0</span>
+          </div>
+          <!-- 4K Ultra HD Indikatori -->
+          <div class="hud-item quality-box" title="Ultra HD 4K Grafik Dvigatel">
+            <span class="badge-4k">4K UHD</span>
+          </div>
+          <!-- Ovoz, To'liq ekran va Pauza tugmalari (Katta ekranlar) -->
+          <div class="hud-controls">
+            <button id="btn-fullscreen-toggle" class="icon-btn" title="To'liq ekran (F)">⛶</button>
+            <button id="btn-sound-toggle" class="icon-btn" title="Ovozni yoqish/o'chirish (M)">🔊</button>
+            <button id="btn-pause-toggle" class="icon-btn" title="Pauza (P)">⏸️</button>
+          </div>
+          <!-- Mobil Burger Menyu tugmasi (Kichik ekranlar) -->
+          <button id="btn-burger-menu" class="icon-btn btn-burger" aria-label="O'yin Menyusi" title="O'yin Menyusi">☰</button>
+        </div>
+      </header>
+
+      <!-- Xabarnomalar (O'yin ichidagi toast bildirishnomalari) -->
+      <div id="game-toast" class="toast hidden"></div>
+
+      <!-- EKRANLAR (Overlays) -->
+
+      <!-- 1. BOSH MENYU -->
+      <div id="screen-menu" class="screen-overlay">
+        <div class="menu-card menu-card-main">
+          <div class="menu-header-group">
+            <div class="title-badge">🏴‍☠️ RETRO 2D SARGUZASHT 🏝️</div>
+            <h1 class="game-title">XAZINA<br>QIDIRISH</h1>
+            <p class="game-subtitle">10 Ta Qiyinlashib Boruvchi Orol Bosqichlari</p>
+
+            <div class="highscore-badge">
+              <span>🏆 ENG YUQORI BALL: </span>
+              <strong id="menu-highscore">0</strong>
+            </div>
+
+            <div class="footer-creds landscape-creds">
+              10 Bosqich • Har bir bosqich qiyinlashadi!
+            </div>
+          </div>
+
+          <div class="menu-actions">
+            <button id="btn-start" class="btn btn-primary btn-start-main">O'YINNI BOSHLASH</button>
+            <div class="menu-secondary-actions">
+              <button id="btn-level-select" class="btn btn-secondary">🗺️ BOSQICHLAR (1-10)</button>
+              <button id="btn-quiz-category" class="btn btn-secondary">📚 FAN: <span id="menu-quiz-category">ARALASH 🎲</span></button>
+              <button id="btn-how-to" class="btn btn-secondary">QANDAY O'YNALADI?</button>
+              <button id="btn-menu-sound" class="btn btn-secondary">OVOZ: <span id="menu-sound-status">YOQILGAN</span></button>
+            </div>
+            <div class="footer-creds portrait-creds">
+              10 Bosqich • Har bir bosqich qiyinlashadi!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.5. BOSQICH TANLASH EKRANI -->
+      <div id="screen-level-select" class="screen-overlay hidden">
+        <div class="menu-card level-select-card">
+          <h2>BOSQICHNI TANLANG (1-10)</h2>
+          <p class="game-subtitle">Istalgan bosqichni tanlab sinab ko'ring!</p>
+          <div id="level-grid" class="level-grid"></div>
+          <button id="btn-level-select-back" class="btn btn-primary">ORQAGA</button>
+        </div>
+      </div>
+
+      <!-- 2. QANDAY O'YNALADI (Yordam) -->
+      <div id="screen-instructions" class="screen-overlay hidden">
+        <div class="menu-card instructions-card">
+          <h2>QANDAY O'YNALADI?</h2>
+          <div class="instructions-content">
+            <div class="rule-item">
+              <span class="rule-icon">🎮</span>
+              <div>
+                <strong>Boshqaruv:</strong>
+                <p>WASD yoki Strelka tugmalari — harakat. [SPACE] (Probel) yoki sichqoncha — Qilich zarbasi.</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">⚔️</span>
+              <div>
+                <strong>Qilich bilan himoyalanish:</strong>
+                <p>[SPACE] (Probel), [J], [Z], sichqoncha bosish yoki ekrandagi ⚔️ tugmasi orqali qilich silkiting va dushmanlarni yo'q qiling!</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">⚡ 💡</span>
+              <div>
+                <strong>Tezkor Savol-Javob orqali Qochish [Q]:</strong>
+                <p>Dushman quvganda yoki to'satdan urilganda tezkor savolga to'g'ri javob bering (Matematika, Ingliz tili yoki Geografiya)! To'g'ri topsangiz, tutun bombasi portlab barcha dushmanlar 4.5 soniyaga karaxt bo'lib qotib qoladi va siz tezkor sprint bilan qochib ketasiz!</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">🔑</span>
+              <div>
+                <strong>Maqsad:</strong>
+                <p>Har bir bosqichda oltin kalitni toping va sandiqqa yetib boring!</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">🪙</span>
+              <div>
+                <strong>Yig'iladigan narsalar:</strong>
+                <p>Tangalar (+10 ball) va zumrad javohirlar (+50 ball) to'plang.</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">🧭</span>
+              <div>
+                <strong>Ishora tizimi (Kompas):</strong>
+                <p>Tepadagi kompas kalit va sandiq yo'nalishini hamda masofani ko'rsatadi (Muzdek, Iliq, Issiq, Qaynoq).</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">🦀 💀</span>
+              <div>
+                <strong>Asosiy Dushmanlar:</strong>
+                <p>Qisqichbaqa va quvuvchi skeletlar, tezkor va xavfli tikanli tuzoqlar.</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">🦀 💀 🦇</span>
+              <div>
+                <strong>Dushmanlar va Hujum Rejimi:</strong>
+                <p>Ehtiyot bo'ling! Dushmanlar sizni sezib qolishsa, boshlari uzra "!" paydo bo'ladi va ular tezlashib to'g'ridan-to'g'ri hujumga o'tishadi! Bosqichlar oshgan sari ularning sezuvchanligi va tezligi kuchayadi.</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">👻 💣 👑</span>
+              <div>
+                <strong>Yangi Xavflar va Boss:</strong>
+                <p>Devorlardan o'tuvchi arvohlar, qal'a to'plari (halokatli yadrolar otadi) va 10-bosqichda afsonaviy Qora Soqol (Final Boss)!</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">❤️ 🛡️</span>
+              <div>
+                <strong>Yordamchi Eliksirlar:</strong>
+                <p>❤️ Shifobaxsh eliksir hayotni tiklaydi (maksimal 4 ta). 🛡️ Sehrli qalqon 6 soniya daxlsizlik beradi!</p>
+              </div>
+            </div>
+          </div>
+          <button id="btn-back-to-menu" class="btn btn-primary">ORQAGA</button>
+        </div>
+      </div>
+
+      <!-- 3. PAUZA EKRANI -->
+      <div id="screen-pause" class="screen-overlay hidden">
+        <div class="menu-card">
+          <h2>O'YIN TO'XTATILDI</h2>
+          <p class="pause-hint">[P] tugmasi bilan davom etish mumkin</p>
+          <div class="menu-actions">
+            <button id="btn-resume" class="btn btn-primary">DAVOM ETISH</button>
+            <button id="btn-pause-quiz-category" class="btn btn-secondary">📚 FAN: <span id="pause-quiz-category">ARALASH 🎲</span></button>
+            <button id="btn-restart-level" class="btn btn-secondary">BOSQICHNI QAYTA BOSHLASH</button>
+            <button id="btn-to-main-menu" class="btn btn-danger">BOSH MENYU</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.5. MOBIL BURGER MENYU (DRAWER / OVERLAY) -->
+      <div id="mobile-burger-menu" class="screen-overlay hidden burger-overlay">
+        <div class="menu-card burger-card">
+          <div class="burger-header">
+            <div class="burger-title">
+              <span class="burger-icon">🏴‍☠️</span>
+              <div>
+                <h3>O'YIN SOZLAMALARI</h3>
+                <span id="burger-stat-level-name" class="burger-level-subtitle">1-Bosqich: Tinch Sohil</span>
+              </div>
+            </div>
+            <button id="btn-burger-close" class="burger-close-btn" aria-label="Yopish">✕</button>
+          </div>
+
+          <div class="burger-stats-bar">
+            <div class="burger-stat-item">
+              <span class="stat-lbl">BOSQICH</span>
+              <strong id="burger-stat-level">1/10</strong>
+            </div>
+            <div class="burger-stat-item">
+              <span class="stat-lbl">VAQT</span>
+              <strong id="burger-stat-timer">01:30</strong>
+            </div>
+            <div class="burger-stat-item">
+              <span class="stat-lbl">BALL</span>
+              <strong id="burger-stat-score">0</strong>
+            </div>
+            <div class="burger-stat-item">
+              <span class="stat-lbl">REKORD</span>
+              <strong id="burger-stat-highscore">0</strong>
+            </div>
+          </div>
+
+          <div class="burger-actions-grid">
+            <button id="btn-burger-resume" class="btn btn-primary btn-burger-action">
+              <span class="btn-icon">▶️</span> DAVOM ETISH
+            </button>
+            <button id="btn-burger-sound" class="btn btn-secondary btn-burger-action">
+              <span class="btn-icon">🔊</span> OVOZ: <span id="burger-sound-status">YOQILGAN</span>
+            </button>
+            <button id="btn-burger-quiz-category" class="btn btn-secondary btn-burger-action">
+              <span class="btn-icon">📚</span> FAN: <span id="burger-quiz-category">ARALASH 🎲</span>
+            </button>
+            <button id="btn-burger-fullscreen" class="btn btn-secondary btn-burger-action">
+              <span class="btn-icon">⛶</span> TO'LIQ EKRAN
+            </button>
+            <button id="btn-burger-restart" class="btn btn-secondary btn-burger-action">
+              <span class="btn-icon">🔄</span> BOSQICHNI QAYTA BOSHLASH
+            </button>
+            <button id="btn-burger-level-select" class="btn btn-secondary btn-burger-action">
+              <span class="btn-icon">🗺️</span> BOSQICHLAR RO'YXATI
+            </button>
+            <button id="btn-burger-how-to" class="btn btn-secondary btn-burger-action">
+              <span class="btn-icon">📖</span> QANDAY O'YNALADI?
+            </button>
+            <button id="btn-burger-to-menu" class="btn btn-danger btn-burger-action">
+              <span class="btn-icon">🏠</span> BOSH MENYUGA QAYTISH
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. BOSQICH YAKUNLANDI (Level Clear) -->
+      <div id="screen-level-clear" class="screen-overlay hidden">
+        <div class="menu-card success-card">
+          <div class="celebrate-icon">🎉 💎 🏆</div>
+          <h2 id="level-clear-title">BOSQICH FATH ETILDI!</h2>
+          <p id="level-clear-desc">Siz sandiqni muvaffaqiyatli ochdingiz!</p>
+          <div class="stats-summary">
+            <div>Bosqich balli: <strong id="level-clear-score">+0</strong></div>
+            <div>⏱️ Vaqt bonusi: <strong id="level-clear-time-bonus">+0</strong></div>
+            <div>Umumiy ball: <strong id="level-clear-total-score">0</strong></div>
+          </div>
+          <button id="btn-next-level" class="btn btn-primary">KEYINGI BOSQICH ➔</button>
+        </div>
+      </div>
+
+      <!-- 5. G'ALABA EKRANI (Victory - Barcha 10 daraja yutilganda) -->
+      <div id="screen-victory" class="screen-overlay hidden">
+        <div class="menu-card victory-card">
+          <div class="celebrate-icon">👑 💰 🏝️ 🏆</div>
+          <h2 class="victory-title">G'ALABA!</h2>
+          <p class="victory-desc">Qoyil! Siz barcha 10 ta xavfli va qiyin orol bosqichlarini yengib, afsonaviy Qora Soqolni mag'lub etdingiz va haqiqiy Qaroqchilar Qiroliga aylandingiz!</p>
+          <div class="final-score-box">
+            <span>YAKUNIY BALL:</span>
+            <h3 id="victory-final-score">0</h3>
+            <div id="victory-new-record" class="new-record-tag hidden">YANGI REKORD! 🌟</div>
+          </div>
+          <div class="menu-actions">
+            <button id="btn-victory-restart" class="btn btn-primary">BOSHDAN O'YNASH</button>
+            <button id="btn-victory-menu" class="btn btn-secondary">BOSH MENYU</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. MAG'LUBIYAT EKRANI (Game Over - faqat hayot 0 bo'lganda) -->
+      <div id="screen-game-over" class="screen-overlay hidden">
+        <div class="menu-card gameover-card">
+          <div class="skull-icon">💀 🏴‍☠️ ⚓</div>
+          <h2>MAG'LUBIYAT!</h2>
+          <p>Barcha hayotlaringiz tugadi! Ammo orol xazinalari sizni kutmoqda.</p>
+          <div class="final-score-box">
+            <span>TO'PLANGAN BALL:</span>
+            <h3 id="game-over-score">0</h3>
+          </div>
+          <div class="menu-actions">
+            <button id="btn-retry" class="btn btn-primary">QAYTA URINISH</button>
+            <button id="btn-game-over-menu" class="btn btn-secondary">BOSH MENYU</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. TEZKOR SAVOL-JAVOB / QOCHISH EKRANI (QUIZ ESCAPE DIALOG) -->
+      <div id="screen-math-escape" class="screen-overlay hidden">
+        <div class="menu-card math-escape-card">
+          <div class="math-header">
+            <span class="math-icon">⚡</span>
+            <h2 id="math-modal-title">TEZKOR SAVOL-JAVOB!</h2>
+            <span class="math-icon">💡</span>
+          </div>
+          <div id="quiz-category-tag" class="quiz-category-tag">🎲 ARALASH</div>
+          <p id="math-prompt-desc" class="game-subtitle">Dushmandan qochish uchun to'g'ri javobni tanlang!</p>
+          
+          <div class="math-timer-wrapper">
+            <div id="math-timer-bar" class="math-timer-bar"></div>
+          </div>
+
+          <div class="math-equation-box">
+            <span id="math-equation" class="math-equation">7 × 8 = ?</span>
+          </div>
+
+          <div id="math-options" class="math-options-grid"></div>
+
+          <div class="math-controls-hint">
+            <span>Klaviatura: <strong>[1]</strong> <strong>[2]</strong> <strong>[3]</strong> <strong>[4]</strong> yoki Bosish</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobil va planshetlar uchun sensorli boshqaruv paneli (Touch D-pad) -->
+      <div id="mobile-controls" class="mobile-controls-panel">
+        <div class="dpad-grid">
+          <div></div>
+          <button id="btn-up" class="dpad-btn" data-key="ArrowUp" aria-label="Yuqoriga">▲</button>
+          <div></div>
+          <button id="btn-left" class="dpad-btn" data-key="ArrowLeft" aria-label="Chapga">◀</button>
+          <div class="dpad-center"></div>
+          <button id="btn-right" class="dpad-btn" data-key="ArrowRight" aria-label="O'ngga">▶</button>
+          <div></div>
+          <button id="btn-down" class="dpad-btn" data-key="ArrowDown" aria-label="Pastga">▼</button>
+          <div></div>
+        </div>
+      </div>
+
+      <!-- Mobil va planshetlar uchun Qilich va Qochish tugmalari -->
+      <div id="mobile-attack" class="mobile-attack-panel">
+        <button id="btn-escape" class="escape-btn ready" aria-label="Tezkor Qochish (Q)" title="Qochish Savoli">
+          <span class="escape-icon">⚡</span>
+          <span id="escape-btn-cooldown" class="escape-cooldown-text"></span>
+        </button>
+        <button id="btn-attack" class="attack-btn" aria-label="Qilich zarbasi" title="Qilich zarbasi">⚔️</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

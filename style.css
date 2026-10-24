@@ -1,0 +1,1969 @@
+/* ========================================================
+   XAZINA QIDIRISH: QAROQCHILAR OROLI - STIL VA DIZAYN
+   Uslub: Retro Pixel-Art, Qaroqchi Oroli (Wood, Sand, Gold, Ocean)
+   ======================================================== */
+
+:root {
+  --color-sea-deep: #0c3350;
+  --color-sea: #145d82;
+  --color-sea-light: #48a9c5;
+  --color-sand: #e6c587;
+  --color-sand-dark: #b89352;
+  --color-grass: #3e8938;
+  --color-wood-dark: #2c1a11;
+  --color-wood-medium: #4a2c1b;
+  --color-wood-light: #7a4b2a;
+  --color-gold: #ffd700;
+  --color-gold-hover: #ffea70;
+  --color-gold-dark: #c29b00;
+  --color-ruby: #e63946;
+  --color-text-light: #fff9e6;
+  --color-text-dark: #1b120c;
+  --font-pixel: 'Press Start 2P', monospace, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-sea-deep);
+  background-image: 
+    radial-gradient(circle at 50% 30%, #1c5274 0%, var(--color-sea-deep) 80%);
+  font-family: var(--font-pixel);
+  color: var(--color-text-light);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ========================================================
+   ASOSIY KONTEYNER VA CANVAS
+   ======================================================== */
+
+#game-wrapper {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  background-color: var(--color-sea-deep);
+}
+
+#game-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  background-color: #0b2234;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#game-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* 4K Kinematografik Vignette effekti (burchaklardagi tabiiy chuqurlik) */
+  box-shadow: inset 0 0 120px rgba(0, 15, 30, 0.42);
+  z-index: 5;
+}
+
+canvas#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background-color: var(--color-sea);
+  cursor: crosshair;
+}
+
+/* ========================================================
+   HUD (HEADS-UP DISPLAY - YUQORI INTERFEYS)
+   ======================================================== */
+
+.hud-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 14px;
+  background: rgba(44, 26, 17, 0.88);
+  border-bottom: 3px solid var(--color-gold-dark);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  pointer-events: auto;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 1.4;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.hud-left, .hud-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 400px;
+}
+
+.hud-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--color-wood-light);
+}
+
+.hud-label {
+  color: var(--color-sand);
+  font-size: 8px;
+}
+
+.hud-val {
+  color: var(--color-gold);
+  font-weight: bold;
+}
+
+.hearts-container {
+  display: inline-flex;
+  gap: 2px;
+  font-size: 13px;
+  letter-spacing: -2px;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+}
+
+.key-indicator {
+  font-size: 13px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.key-indicator.uncollected {
+  filter: grayscale(100%) opacity(35%);
+}
+
+.key-indicator.collected {
+  filter: drop-shadow(0 0 6px var(--color-gold));
+  animation: keyPulse 1.2s infinite alternate;
+}
+
+@keyframes keyPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.25) rotate(12deg); }
+}
+
+/* Kompas va Masofa Detektori */
+.compass-box {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(20, 10, 5, 0.7);
+  border: 2px solid var(--color-gold-dark);
+  color: var(--color-text-light);
+  font-size: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compass-needle {
+  font-size: 14px;
+  display: inline-block;
+  transition: transform 0.2s ease-out;
+}
+
+.compass-box.cold {
+  border-color: #4da6ff;
+  color: #99ccff;
+}
+
+.compass-box.warm {
+  border-color: #ffd11a;
+  color: #ffe680;
+}
+
+.compass-box.hot {
+  border-color: #ff6600;
+  color: #ffa366;
+  animation: alertPulse 0.6s infinite alternate;
+}
+
+.compass-box.boiling {
+  border-color: #ff1a1a;
+  color: #ff8080;
+  animation: alertPulse 0.3s infinite alternate;
+}
+
+@keyframes alertPulse {
+  from { opacity: 0.85; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1.02); }
+}
+
+/* ========================================================
+   BOSQICH TIMERI (LEVEL TIMER HUD)
+   ======================================================== */
+
+.timer-box {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(18, 10, 5, 0.72);
+  border: 2px solid var(--color-gold-dark);
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+}
+
+.timer-box .timer-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.timer-box .timer-val {
+  font-size: 10px;
+  color: #00d2d3;
+  font-family: var(--font-pixel);
+  letter-spacing: 0.5px;
+  font-weight: bold;
+}
+
+.timer-box.warning {
+  border-color: #f39c12;
+  box-shadow: 0 0 10px rgba(243, 156, 18, 0.6);
+}
+
+.timer-box.warning .timer-val {
+  color: #f39c12;
+}
+
+.timer-box.danger {
+  border-color: #ff3838;
+  background: rgba(255, 56, 56, 0.3);
+  box-shadow: 0 0 15px rgba(255, 56, 56, 0.9);
+  animation: pulseTimerDanger 0.6s infinite alternate;
+}
+
+.timer-box.danger .timer-val {
+  color: #ff4d4d;
+  text-shadow: 0 0 6px #ff0000;
+}
+
+@keyframes pulseTimerDanger {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.06); }
+}
+
+/* HUD Boshqaruv Tugmalari */
+.hud-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.icon-btn {
+  background: var(--color-wood-medium);
+  border: 2px solid var(--color-sand);
+  color: var(--color-text-light);
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.icon-btn:hover {
+  background: var(--color-wood-light);
+  transform: translateY(-2px);
+}
+
+.icon-btn:active {
+  transform: translateY(1px);
+}
+
+/* ========================================================
+   TOAST BILDIRISHNOMALARI
+   ======================================================== */
+
+.toast {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(18, 12, 7, 0.95);
+  border: 2px solid var(--color-gold);
+  color: var(--color-gold);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 9px;
+  z-index: 100;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  animation: toastPop 0.3s ease-out;
+  text-align: center;
+}
+
+@keyframes toastPop {
+  0% { transform: translate(-50%, -15px); opacity: 0; }
+  100% { transform: translate(-50%, 0); opacity: 1; }
+}
+
+/* ========================================================
+   EKRANLAR (SCREEN OVERLAYS)
+   ======================================================== */
+
+.screen-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 20, 30, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  padding: max(12px, env(safe-area-inset-top, 12px)) max(12px, env(safe-area-inset-right, 12px)) max(12px, env(safe-area-inset-bottom, 12px)) max(12px, env(safe-area-inset-left, 12px));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transition: opacity 0.2s ease;
+}
+
+.screen-overlay.hidden,
+.hud-panel.hidden,
+.toast.hidden {
+  display: none !important;
+}
+
+.menu-card {
+  background: var(--color-wood-dark);
+  border: 4px solid var(--color-wood-light);
+  box-shadow: 
+    0 0 0 3px var(--color-gold),
+    0 10px 25px rgba(0, 0, 0, 0.85);
+  padding: 24px 20px;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 480px;
+  width: 92%;
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gold) rgba(18, 10, 5, 0.6);
+}
+
+/* Maxsus pixel-art skrollbar barcha popup kartalar uchun */
+.menu-card::-webkit-scrollbar,
+.burger-card::-webkit-scrollbar,
+.instructions-content::-webkit-scrollbar,
+.level-grid::-webkit-scrollbar,
+.screen-overlay::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.menu-card::-webkit-scrollbar-track,
+.burger-card::-webkit-scrollbar-track,
+.instructions-content::-webkit-scrollbar-track,
+.level-grid::-webkit-scrollbar-track,
+.screen-overlay::-webkit-scrollbar-track {
+  background: rgba(18, 10, 5, 0.6);
+  border-radius: 3px;
+}
+.menu-card::-webkit-scrollbar-thumb,
+.burger-card::-webkit-scrollbar-thumb,
+.instructions-content::-webkit-scrollbar-thumb,
+.level-grid::-webkit-scrollbar-thumb,
+.screen-overlay::-webkit-scrollbar-thumb {
+  background: var(--color-gold);
+  border-radius: 3px;
+}
+.menu-card::-webkit-scrollbar-thumb:hover,
+.burger-card::-webkit-scrollbar-thumb:hover,
+.instructions-content::-webkit-scrollbar-thumb:hover,
+.level-grid::-webkit-scrollbar-thumb:hover,
+.screen-overlay::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-hover);
+}
+
+.menu-header-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title-badge {
+  font-size: 8px;
+  color: var(--color-sand);
+  letter-spacing: 1px;
+}
+
+.game-title {
+  font-size: 22px;
+  line-height: 1.25;
+  color: var(--color-gold);
+  text-shadow: 
+    3px 3px 0 #57330c,
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000;
+  margin-top: 2px;
+}
+
+.game-subtitle {
+  font-size: 8.5px;
+  color: var(--color-sand);
+}
+
+.highscore-badge {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px dashed var(--color-gold);
+  font-size: 8px;
+  color: var(--color-sand);
+}
+
+.highscore-badge strong {
+  color: var(--color-gold);
+}
+
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.menu-secondary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-start-main {
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.4), 0 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+.landscape-creds {
+  display: none;
+}
+
+.portrait-creds {
+  display: block;
+}
+
+/* ========================================================
+   TUGMALAR (RETRO PIXEL BUTTONS)
+   ======================================================== */
+
+.btn {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  padding: 12px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 2px solid;
+  outline: none;
+  text-transform: uppercase;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+  line-height: 1.4;
+}
+
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.btn-primary {
+  background: var(--color-gold);
+  color: var(--color-text-dark);
+  border-color: #fff #997300 #997300 #fff;
+}
+
+.btn-primary:hover {
+  background: var(--color-gold-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary {
+  background: var(--color-wood-medium);
+  color: var(--color-text-light);
+  border-color: var(--color-wood-light) var(--color-wood-dark) var(--color-wood-dark) var(--color-wood-light);
+}
+
+.btn-secondary:hover {
+  background: var(--color-wood-light);
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: var(--color-ruby);
+  color: #fff;
+  border-color: #ff7582 #9e1b24 #9e1b24 #ff7582;
+}
+
+.btn-danger:hover {
+  background: #ff4d5b;
+  transform: translateY(-2px);
+}
+
+.footer-creds {
+  font-size: 7px;
+  color: #a18e77;
+  margin-top: 8px;
+}
+
+/* ========================================================
+   QOIDALAR (INSTRUCTIONS) KARTASI
+   ======================================================== */
+
+.instructions-card {
+  max-width: 580px;
+  text-align: left;
+}
+
+.instructions-card h2 {
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-gold);
+  margin-bottom: 4px;
+}
+
+.instructions-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* Maxsus pixel-art skrollbar */
+.instructions-content::-webkit-scrollbar {
+  width: 6px;
+}
+.instructions-content::-webkit-scrollbar-track {
+  background: var(--color-wood-dark);
+}
+.instructions-content::-webkit-scrollbar-thumb {
+  background: var(--color-gold-dark);
+  border-radius: 3px;
+}
+
+.rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 3px solid var(--color-gold);
+}
+
+.rule-icon {
+  font-size: 18px;
+  min-width: 28px;
+  text-align: center;
+}
+
+.rule-item strong {
+  font-size: 8px;
+  color: var(--color-gold);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.rule-item p {
+  font-size: 7.5px;
+  line-height: 1.5;
+  color: var(--color-text-light);
+}
+
+/* ========================================================
+   BOSQICH VA G'ALABA KARTALARI
+   ======================================================== */
+
+.celebrate-icon, .skull-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  animation: bounceSoft 1s infinite alternate;
+}
+
+@keyframes bounceSoft {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+.stats-summary, .final-score-box {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--color-wood-light);
+  font-size: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.stats-summary strong, .final-score-box h3 {
+  color: var(--color-gold);
+}
+
+.final-score-box h3 {
+  font-size: 20px;
+  margin-top: 4px;
+}
+
+.new-record-tag {
+  background: var(--color-ruby);
+  color: #fff;
+  font-size: 8px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-top: 6px;
+  animation: keyPulse 0.8s infinite alternate;
+}
+
+.pause-hint {
+  font-size: 8px;
+  color: var(--color-sand);
+}
+
+.victory-title {
+  color: var(--color-gold);
+  font-size: 20px;
+}
+
+.victory-desc {
+  font-size: 8px;
+  line-height: 1.6;
+  color: var(--color-sand);
+}
+
+/* ========================================================
+   SENSORLI BOSHQARUV (TOUCH D-PAD)
+   ======================================================== */
+
+/* ========================================================
+   BURGER MENYU TUGMASI (HUD)
+   ======================================================== */
+
+.btn-burger {
+  display: none; /* Desktop monitorlarda yashirin */
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 34px;
+  background: linear-gradient(180deg, #f39c12 0%, #d35400 100%);
+  border: 2px solid var(--color-gold);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
+  transition: transform 0.1s, background 0.1s;
+  outline: none;
+  font-family: sans-serif;
+  line-height: 1;
+}
+
+.btn-burger:active {
+  transform: scale(0.92);
+  background: #e67e22;
+}
+
+/* ========================================================
+   MOBIL BURGER MENYU (DRAWER / OVERLAY)
+   ======================================================== */
+
+.burger-overlay {
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.burger-card {
+  max-width: 360px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--color-wood-dark);
+  border: 3px solid var(--color-gold);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 
+    0 0 35px rgba(0, 0, 0, 0.95),
+    0 0 15px rgba(255, 215, 0, 0.3);
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.burger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--color-wood-light);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.burger-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.burger-title h3 {
+  font-size: 11px;
+  color: var(--color-gold);
+  margin: 0;
+  text-shadow: 1px 1px 0 #000;
+  letter-spacing: 0.5px;
+}
+
+.burger-level-subtitle {
+  font-size: 7.5px;
+  color: var(--color-sand);
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-pixel);
+}
+
+.burger-close-btn {
+  background: var(--color-wood-medium);
+  border: 1px solid var(--color-gold);
+  color: #fff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: all 0.1s ease;
+}
+
+.burger-close-btn:active {
+  background: #e74c3c;
+  transform: scale(0.92);
+}
+
+.burger-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--color-wood-light);
+  border-radius: 8px;
+  padding: 8px 6px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.burger-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.burger-stat-item .stat-lbl {
+  font-size: 7px;
+  color: var(--color-sand);
+}
+
+.burger-stat-item strong {
+  font-size: 10px;
+  color: var(--color-gold);
+}
+
+.burger-actions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-burger-action {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  font-size: 9px;
+  border-radius: 6px;
+  font-family: var(--font-pixel);
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.3;
+}
+
+.btn-burger-action .btn-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* ========================================================
+   SENSORLI BOSHQARUV (TOUCH D-PAD & ACTION BUTTONS)
+   ======================================================== */
+
+.mobile-controls-panel {
+  position: absolute;
+  bottom: max(14px, env(safe-area-inset-bottom, 14px));
+  left: max(14px, env(safe-area-inset-left, 14px));
+  z-index: 30;
+  pointer-events: auto;
+  touch-action: none;
+  opacity: 0.92;
+  transition: opacity 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mobile-controls-panel.hidden,
+.mobile-attack-panel.hidden {
+  display: none !important;
+}
+
+.dpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  grid-template-rows: repeat(3, 48px);
+  gap: 4px;
+  background: rgba(18, 10, 5, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 6px;
+  border-radius: 14px;
+  border: 2px solid var(--color-gold-dark);
+  box-shadow: 
+    0 0 15px rgba(0, 0, 0, 0.75),
+    0 0 8px rgba(255, 215, 0, 0.15);
+}
+
+.dpad-center {
+  background: radial-gradient(circle, var(--color-gold-dark) 0%, rgba(0, 0, 0, 0.5) 80%);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dpad-center::after {
+  content: '⚓';
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.dpad-btn {
+  background: linear-gradient(180deg, var(--color-wood-medium) 0%, var(--color-wood-dark) 100%);
+  border: 2px solid var(--color-wood-light);
+  color: var(--color-gold);
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.6);
+  touch-action: none;
+  transition: all 0.08s ease;
+}
+
+.dpad-btn:active,
+.dpad-btn.pressed {
+  background: linear-gradient(180deg, var(--color-gold) 0%, var(--color-gold-dark) 100%);
+  color: #1a0f07;
+  transform: translateY(2px) scale(0.96);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 215, 0, 0.6);
+  border-color: #fff;
+}
+
+.mobile-attack-panel {
+  position: absolute;
+  bottom: max(14px, env(safe-area-inset-bottom, 14px));
+  right: max(14px, env(safe-area-inset-right, 14px));
+  z-index: 30;
+  pointer-events: auto;
+  touch-action: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.escape-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00d2d3 0%, #0abde3 65%, #01a3a4 100%);
+  border: 3px solid var(--color-gold);
+  color: #fff;
+  font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 
+    0 0 0 2px var(--color-wood-dark),
+    0 6px 14px rgba(0, 0, 0, 0.6),
+    0 0 10px rgba(0, 210, 211, 0.4);
+  transition: transform 0.1s, opacity 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  outline: none;
+}
+
+.escape-btn .escape-cooldown-text {
+  font-size: 9px;
+  font-family: var(--font-pixel);
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 1px 1px 0 #000;
+  margin-top: 1px;
+}
+
+.escape-btn.cooldown {
+  opacity: 0.55;
+  filter: grayscale(0.7);
+}
+
+.escape-btn.ready {
+  animation: pulseEscape 1.6s infinite alternate;
+}
+
+@keyframes pulseEscape {
+  0% { box-shadow: 0 0 0 2px var(--color-wood-dark), 0 0 6px rgba(0, 210, 211, 0.4); }
+  100% { box-shadow: 0 0 0 2px var(--color-gold), 0 0 18px rgba(0, 210, 211, 0.95); }
+}
+
+.escape-btn:active,
+.escape-btn.pressed {
+  transform: scale(0.92) translateY(2px);
+  background: #48dbfb;
+}
+
+.attack-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ff4757 0%, #e63946 55%, #8b0000 100%);
+  border: 3px solid var(--color-gold);
+  color: #fff;
+  font-size: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 
+    0 0 0 2px var(--color-wood-dark),
+    0 8px 16px rgba(0, 0, 0, 0.7),
+    0 0 14px rgba(230, 57, 70, 0.5);
+  transition: transform 0.1s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  outline: none;
+}
+
+.attack-btn:active,
+.attack-btn.pressed {
+  transform: scale(0.92) translateY(3px);
+  background: #ff6b81;
+  box-shadow: 0 0 0 2px var(--color-gold-hover), 0 2px 8px rgba(0,0,0,0.7);
+}
+
+/* ========================================================
+   RESPONSIVE MOSLASHUVCHANLIK (MOBILE & TABLET BREAKPOINTS)
+   ======================================================== */
+
+@media (min-width: 900px) {
+  .mobile-controls-panel {
+    opacity: 0.45;
+  }
+}
+
+@media (max-width: 1024px), (max-height: 550px), (pointer: coarse) {
+  /* Ortiqcha yuqoridagi tugmalarni burger menyuga yashirish */
+  .hud-controls,
+  .quality-box,
+  .escape-box,
+  .hud-level-name,
+  .hud-label {
+    display: none !important;
+  }
+
+  .btn-burger {
+    display: flex !important;
+    width: 32px;
+    height: 28px;
+    font-size: 15px;
+    border-radius: 5px;
+    padding: 0;
+    margin-left: 3px;
+  }
+
+  .hud-panel {
+    padding: max(3px, env(safe-area-inset-top, 3px)) max(8px, env(safe-area-inset-right, 8px)) 3px max(8px, env(safe-area-inset-left, 8px));
+    height: 36px;
+    min-height: 36px;
+    align-items: center;
+    background: linear-gradient(180deg, rgba(15, 8, 4, 0.88) 0%, rgba(15, 8, 4, 0.65) 100%);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    border-bottom: 2px solid var(--color-gold-dark);
+  }
+
+  .hud-left {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .hud-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    max-width: 220px;
+    margin: 0 4px;
+    min-width: 0;
+  }
+
+  .hud-right {
+    gap: 4px;
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .hud-item {
+    padding: 2px 5px;
+    gap: 3px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hearts-container {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  .key-indicator {
+    font-size: 13px;
+  }
+
+  .compass-box {
+    padding: 2px 6px;
+    font-size: 7px;
+    max-width: 100px;
+    border-radius: 4px;
+  }
+
+  .compass-needle {
+    font-size: 11px;
+  }
+
+  .compass-text {
+    max-width: 75px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 6.5px;
+  }
+
+  .timer-box {
+    padding: 2px 6px;
+    gap: 3px;
+    border-radius: 4px;
+  }
+
+  .timer-box .timer-icon {
+    font-size: 10px;
+  }
+
+  .timer-box .timer-val {
+    font-size: 8px;
+  }
+
+  .level-box .hud-val,
+  .score-box .hud-val {
+    font-size: 8px;
+  }
+
+  /* Kichik ekranda dialog va kartalar */
+  .menu-card {
+    padding: 16px 14px;
+    width: 90%;
+    max-width: 340px;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 9px;
+    margin: auto;
+    min-width: 0;
+  }
+
+  .menu-header-group {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .game-title {
+    font-size: 18px;
+    line-height: 1.25;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    word-break: break-word;
+  }
+
+  .game-subtitle {
+    font-size: 7.5px;
+    line-height: 1.4;
+    margin-bottom: 2px;
+    word-break: break-word;
+  }
+
+  .highscore-badge {
+    padding: 6px 8px;
+    font-size: 7.5px;
+    word-break: break-word;
+  }
+
+  .menu-actions {
+    gap: 8px;
+    margin-top: 2px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .btn {
+    font-size: 8.5px;
+    padding: 10px 10px;
+    width: 100%;
+    word-break: break-word;
+  }
+
+  .btn-start-main {
+    font-size: 9.5px;
+    padding: 11px 10px;
+  }
+
+  .menu-secondary-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .menu-secondary-actions .btn {
+    padding: 9px 8px;
+    font-size: 8px;
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .footer-creds {
+    font-size: 6.5px;
+    margin-top: 3px;
+    word-break: break-word;
+  }
+
+  /* Level Select */
+  .level-select-card {
+    max-width: 380px;
+    padding: 14px 10px;
+  }
+
+  .level-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    max-height: 240px;
+  }
+
+  .level-card {
+    padding: 6px 3px;
+    font-size: 7.5px;
+  }
+
+  /* Instructions */
+  .instructions-card {
+    max-width: 380px;
+    padding: 14px 10px;
+  }
+
+  .instructions-content {
+    max-height: 52vh;
+    max-height: 52dvh;
+    gap: 8px;
+  }
+
+  .rule-item {
+    padding: 6px 8px;
+    gap: 8px;
+  }
+
+  /* Pause Screen */
+  #screen-pause .menu-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  #screen-pause .btn-primary {
+    grid-column: 1 / -1;
+  }
+
+  /* Game Over and Victory Actions */
+  .gameover-card .menu-actions,
+  .victory-card .menu-actions {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .gameover-card .menu-actions .btn,
+  .victory-card .menu-actions .btn {
+    flex: 1;
+    font-size: 8px;
+    padding: 9px 6px;
+  }
+
+  /* Quiz Dialog (Math Escape) on mobile */
+  .math-escape-card {
+    padding: 12px 10px;
+    max-width: 380px;
+    gap: 6px;
+  }
+
+  .math-equation-box {
+    padding: 8px 10px;
+    min-height: 44px;
+    margin-bottom: 8px;
+  }
+
+  .btn-math-opt {
+    min-height: 42px;
+    padding: 6px 8px;
+    font-size: 9.5px;
+  }
+
+  .math-options-grid {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  /* Mobil boshqaruv paneli */
+  .mobile-controls-panel {
+    bottom: max(12px, env(safe-area-inset-bottom, 12px));
+    left: max(12px, env(safe-area-inset-left, 12px));
+    opacity: 0.95;
+  }
+
+  .dpad-grid {
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(3, 44px);
+    gap: 4px;
+    padding: 5px;
+  }
+
+  .dpad-btn {
+    font-size: 15px;
+    border-radius: 6px;
+  }
+
+  .mobile-attack-panel {
+    bottom: max(12px, env(safe-area-inset-bottom, 12px));
+    right: max(12px, env(safe-area-inset-right, 12px));
+    gap: 10px;
+  }
+
+  .attack-btn {
+    width: 66px;
+    height: 66px;
+    font-size: 30px;
+  }
+
+  .escape-btn {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+  }
+
+  .escape-btn .escape-cooldown-text {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 340px) {
+  .menu-secondary-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .level-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .btn {
+    font-size: 7.5px;
+    padding: 7px 5px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 550px) {
+  .hud-controls,
+  .quality-box,
+  .escape-box,
+  .hud-level-name,
+  .hud-label {
+    display: none !important;
+  }
+
+  .btn-burger {
+    display: flex !important;
+  }
+
+  .hud-panel {
+    min-height: 32px;
+    height: 32px;
+    padding: max(2px, env(safe-area-inset-top, 2px)) max(8px, env(safe-area-inset-right, 8px)) 2px max(8px, env(safe-area-inset-left, 8px));
+  }
+
+  .screen-overlay {
+    padding: max(6px, env(safe-area-inset-top, 6px)) max(10px, env(safe-area-inset-right, 10px)) max(6px, env(safe-area-inset-bottom, 6px)) max(10px, env(safe-area-inset-left, 10px));
+  }
+
+  .menu-card {
+    padding: 10px 14px;
+    max-height: calc(100vh - 12px);
+    max-height: calc(100dvh - 12px);
+    margin: auto;
+  }
+
+  /* Bosh menyu landshaft holatida 2 ustunli retro arkada ko'rinishida */
+  .menu-card-main {
+    flex-direction: row;
+    align-items: center;
+    max-width: 620px;
+    width: 95%;
+    gap: 14px;
+    padding: 10px 16px;
+  }
+
+  .menu-card-main .menu-header-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
+  }
+
+  .menu-card-main .game-title {
+    font-size: 16px;
+    line-height: 1.2;
+    margin: 2px 0;
+  }
+
+  .menu-card-main .game-subtitle {
+    font-size: 7px;
+  }
+
+  .menu-card-main .highscore-badge {
+    padding: 4px 6px;
+    font-size: 7px;
+  }
+
+  .menu-card-main .landscape-creds {
+    display: block;
+    font-size: 6.5px;
+    margin-top: 4px;
+  }
+
+  .menu-card-main .portrait-creds {
+    display: none;
+  }
+
+  .menu-card-main .menu-actions {
+    flex: 1.25;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 0;
+  }
+
+  .menu-card-main .btn-start-main {
+    padding: 8px 8px;
+    font-size: 8.5px;
+  }
+
+  .menu-card-main .menu-secondary-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+  }
+
+  .menu-card-main .menu-secondary-actions .btn {
+    padding: 6px 4px;
+    font-size: 7px;
+    min-height: 32px;
+    line-height: 1.25;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* Level Select in landscape */
+  .level-select-card {
+    max-width: 560px;
+    padding: 8px 14px;
+  }
+
+  .level-select-card h2 {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .level-select-card .level-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    max-height: 180px;
+    padding: 4px 2px;
+  }
+
+  .level-select-card .level-card {
+    padding: 4px 2px;
+    font-size: 7px;
+    gap: 2px;
+  }
+
+  /* Instructions in landscape */
+  .instructions-card {
+    max-width: 560px;
+    padding: 8px 14px;
+  }
+
+  .instructions-content {
+    max-height: 175px;
+    gap: 6px;
+  }
+
+  .rule-item {
+    padding: 5px 6px;
+    gap: 6px;
+  }
+
+  /* Pause in landscape */
+  #screen-pause .menu-card {
+    max-width: 440px;
+    padding: 10px 14px;
+    gap: 6px;
+  }
+
+  #screen-pause h2 {
+    font-size: 12px;
+  }
+
+  #screen-pause .menu-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+  }
+
+  /* Quiz Dialog in landscape */
+  .math-escape-card {
+    padding: 10px 14px;
+    gap: 4px;
+    max-height: calc(100vh - 10px);
+    max-height: calc(100dvh - 10px);
+    max-width: 440px;
+  }
+
+  .math-header h2 {
+    font-size: 11px;
+  }
+
+  .math-timer-wrapper {
+    margin: 2px 0 6px 0;
+    height: 6px;
+  }
+
+  .math-equation-box {
+    padding: 6px 8px;
+    min-height: 34px;
+    margin-bottom: 6px;
+  }
+
+  .math-equation {
+    font-size: 11px;
+  }
+
+  .math-options-grid {
+    gap: 5px;
+    margin-bottom: 6px;
+  }
+
+  .btn-math-opt {
+    min-height: 32px;
+    padding: 4px 6px;
+    font-size: 8px;
+  }
+
+  /* Controls panels in landscape */
+  .dpad-grid {
+    grid-template-columns: repeat(3, 38px);
+    grid-template-rows: repeat(3, 38px);
+    gap: 3px;
+    padding: 4px;
+  }
+
+  .mobile-controls-panel {
+    bottom: max(6px, env(safe-area-inset-bottom, 6px));
+    left: max(8px, env(safe-area-inset-left, 8px));
+  }
+
+  .mobile-attack-panel {
+    bottom: max(6px, env(safe-area-inset-bottom, 6px));
+    right: max(8px, env(safe-area-inset-right, 8px));
+    gap: 8px;
+  }
+
+  .attack-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+
+  .escape-btn {
+    width: 46px;
+    height: 46px;
+    font-size: 18px;
+  }
+}
+
+/* ========================================================
+   BOSQICH TANLASH VA DARAJA STILI (15 TA BOSQICH)
+   ======================================================== */
+
+.hud-level-name {
+  font-size: 7.5px;
+  color: var(--color-sand);
+  margin-left: 4px;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.level-select-card {
+  max-width: 680px;
+  width: 95%;
+  max-height: 90vh;
+  padding: 20px;
+}
+
+.level-select-card h2 {
+  font-size: 13px;
+  color: var(--color-gold);
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 6px 2px;
+}
+
+.level-grid::-webkit-scrollbar {
+  width: 6px;
+}
+.level-grid::-webkit-scrollbar-track {
+  background: var(--color-wood-dark);
+}
+.level-grid::-webkit-scrollbar-thumb {
+  background: var(--color-gold-dark);
+  border-radius: 3px;
+}
+
+.level-card {
+  background: rgba(0, 0, 0, 0.45);
+  border: 2px solid var(--color-wood-light);
+  border-radius: 4px;
+  padding: 8px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease-in-out;
+  text-align: center;
+}
+
+.level-card:hover {
+  background: rgba(44, 26, 17, 0.85);
+  border-color: var(--color-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.level-card-num {
+  font-size: 11px;
+  color: var(--color-gold);
+  font-weight: bold;
+}
+
+.level-card-name {
+  font-size: 6.5px;
+  color: var(--color-sand);
+  line-height: 1.3;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.level-badge {
+  font-size: 5.5px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.badge-easy {
+  background: #27ae60;
+  color: #fff;
+}
+
+.badge-medium {
+  background: #d35400;
+  color: #fff;
+}
+
+.badge-hard {
+  background: #c0392b;
+  color: #fff;
+}
+
+.badge-veryhard {
+  background: #8e44ad;
+  color: #fff;
+}
+
+.badge-nightmare {
+  background: #2c3e50;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+}
+
+.badge-boss {
+  background: linear-gradient(135deg, #e74c3c, #f1c40f);
+  color: #111;
+  font-weight: 900;
+  animation: keyPulse 0.8s infinite alternate;
+}
+
+@media (max-width: 640px) {
+  .level-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ========================================================
+   HUD MATEMATIK QOCHISH TUGMASI (ESCAPE HUD)
+   ======================================================== */
+
+.escape-box {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.btn-hud-escape {
+  background: linear-gradient(180deg, #10ac84, #1dd1a1);
+  border: 2px solid var(--color-gold);
+  color: #fff;
+  font-family: var(--font-pixel);
+  font-size: 7.5px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+  outline: none;
+}
+
+.btn-hud-escape.ready {
+  animation: escapePulse 1.2s infinite alternate;
+}
+
+.btn-hud-escape.cooldown {
+  background: #576574;
+  border-color: #8395a7;
+  color: #c8d6e5;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+@keyframes escapePulse {
+  0% { transform: scale(1); box-shadow: 0 0 4px #1dd1a1; }
+  100% { transform: scale(1.05); box-shadow: 0 0 10px #10ac84, 0 0 6px #ffd700; }
+}
+
+/* ========================================================
+   TEZKOR SAVOL-JAVOB / QOCHISH EKRANI (QUIZ ESCAPE DIALOG)
+   ======================================================== */
+
+.math-escape-card {
+  max-width: 480px;
+  width: 92%;
+  border-color: var(--color-gold);
+  box-shadow: 
+    0 0 25px rgba(0, 210, 211, 0.4),
+    0 10px 30px rgba(0, 0, 0, 0.8);
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.math-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.math-header h2 {
+  font-size: 13px;
+  color: var(--color-gold);
+  text-shadow: 2px 2px 0 #000;
+  margin: 0;
+}
+
+.quiz-category-tag {
+  display: inline-block;
+  align-self: center;
+  margin: 6px auto 10px auto;
+  padding: 4px 14px;
+  background: rgba(0, 210, 211, 0.2);
+  border: 1px solid var(--color-cyan);
+  border-radius: 14px;
+  color: #ffd700;
+  font-size: 10px;
+  font-family: var(--font-pixel);
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.math-timer-wrapper {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  border: 1px solid var(--color-wood-light);
+  overflow: hidden;
+  margin: 8px 0 14px 0;
+}
+
+.math-timer-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #1dd1a1, #ffd700, #ff6b6b);
+  transition: width 0.05s linear;
+}
+
+.math-equation-box {
+  background: rgba(0, 0, 0, 0.55);
+  border: 2px solid var(--color-gold-dark);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  text-align: center;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.math-equation {
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff9e6;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+  letter-spacing: 0.5px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.math-equation.math-equation-large {
+  font-size: 22px;
+  letter-spacing: 2px;
+}
+
+.math-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.btn-math-opt {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  padding: 10px 10px;
+  min-height: 50px;
+  background: var(--color-wood-medium);
+  border: 2px solid var(--color-wood-light);
+  color: var(--color-text-light);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  font-family: var(--font-pixel);
+  text-align: left;
+  line-height: 1.35;
+}
+
+.btn-math-opt:hover {
+  background: var(--color-gold-dark);
+  border-color: var(--color-gold);
+  color: #000;
+  transform: translateY(-2px);
+}
+
+.btn-math-opt .opt-num {
+  font-size: 9px;
+  color: var(--color-gold);
+  opacity: 0.9;
+  flex-shrink: 0;
+  font-weight: bold;
+}
+
+.btn-math-opt:hover .opt-num {
+  color: #000;
+}
+
+.btn-math-opt .opt-val {
+  font-size: 11px;
+  word-break: break-word;
+  flex: 1;
+}
+
+.math-controls-hint {
+  font-size: 7px;
+  color: var(--color-sand);
+  opacity: 0.75;
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* ========================================================
+   4K ULTRA HD INDIKATORI (HUD BADGE)
+   ======================================================== */
+
+.quality-box {
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+}
+
+.badge-4k {
+  background: linear-gradient(135deg, #ffd700 0%, #ff9f1a 100%);
+  color: #1a0f00;
+  font-family: var(--font-pixel);
+  font-size: 6.5px;
+  font-weight: 900;
+  padding: 3px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.8px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+  display: inline-flex;
+  align-items: center;
+  text-shadow: none;
+  user-select: none;
+}
+
+
