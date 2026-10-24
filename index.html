@@ -138,7 +138,7 @@
               <span class="rule-icon">🎮</span>
               <div>
                 <strong>Boshqaruv:</strong>
-                <p>WASD yoki Strelka tugmalari — harakat. [SPACE] (Probel) yoki sichqoncha — Qilich zarbasi.</p>
+                <p>WASD / Strelkalar yoki Sensorli Joystick — harakatlanish. [SPACE] (Probel), [J] yoki sichqoncha — Qilich zarbasi.</p>
               </div>
             </div>
             <div class="rule-item">
@@ -362,18 +362,21 @@
         </div>
       </div>
 
-      <!-- Mobil va planshetlar uchun sensorli boshqaruv paneli (Touch D-pad) -->
+      <!-- Mobil va planshetlar uchun virtual joystick kontroller -->
       <div id="mobile-controls" class="mobile-controls-panel">
-        <div class="dpad-grid">
-          <div></div>
-          <button id="btn-up" class="dpad-btn" data-key="ArrowUp" aria-label="Yuqoriga">▲</button>
-          <div></div>
-          <button id="btn-left" class="dpad-btn" data-key="ArrowLeft" aria-label="Chapga">◀</button>
-          <div class="dpad-center"></div>
-          <button id="btn-right" class="dpad-btn" data-key="ArrowRight" aria-label="O'ngga">▶</button>
-          <div></div>
-          <button id="btn-down" class="dpad-btn" data-key="ArrowDown" aria-label="Pastga">▼</button>
-          <div></div>
+        <div id="joystick-zone" class="joystick-zone">
+          <div id="joystick-base" class="joystick-base">
+            <div class="joystick-ring"></div>
+            <div class="joystick-arrows">
+              <span class="j-arrow j-arrow-up">▲</span>
+              <span class="j-arrow j-arrow-right">▶</span>
+              <span class="j-arrow j-arrow-down">▼</span>
+              <span class="j-arrow j-arrow-left">◀</span>
+            </div>
+            <div id="joystick-knob" class="joystick-knob">
+              <span class="knob-icon">⚓</span>
+            </div>
+          </div>
         </div>
       </div>
 

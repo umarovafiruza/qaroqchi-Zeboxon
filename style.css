@@ -876,61 +876,157 @@ canvas#gameCanvas {
   display: none !important;
 }
 
-.dpad-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 48px);
-  grid-template-rows: repeat(3, 48px);
-  gap: 4px;
-  background: rgba(18, 10, 5, 0.72);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  padding: 6px;
-  border-radius: 14px;
-  border: 2px solid var(--color-gold-dark);
-  box-shadow: 
-    0 0 15px rgba(0, 0, 0, 0.75),
-    0 0 8px rgba(255, 215, 0, 0.15);
-}
+/* ========================================================
+   SENSORLI JOYSTICK (VIRTUAL JOYSTICK CONTROLLER)
+   ======================================================== */
 
-.dpad-center {
-  background: radial-gradient(circle, var(--color-gold-dark) 0%, rgba(0, 0, 0, 0.5) 80%);
-  border-radius: 6px;
+.joystick-zone {
+  position: relative;
+  width: 140px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.dpad-center::after {
-  content: '⚓';
-  font-size: 13px;
-  opacity: 0.6;
-}
-
-.dpad-btn {
-  background: linear-gradient(180deg, var(--color-wood-medium) 0%, var(--color-wood-dark) 100%);
-  border: 2px solid var(--color-wood-light);
-  color: var(--color-gold);
-  font-size: 16px;
-  font-weight: bold;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 8px;
-  cursor: pointer;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  outline: none;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.6);
-  touch-action: none;
-  transition: all 0.08s ease;
 }
 
-.dpad-btn:active,
-.dpad-btn.pressed {
-  background: linear-gradient(180deg, var(--color-gold) 0%, var(--color-gold-dark) 100%);
-  color: #1a0f07;
-  transform: translateY(2px) scale(0.96);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 215, 0, 0.6);
+.joystick-base {
+  position: relative;
+  width: 126px;
+  height: 126px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(44, 26, 17, 0.85) 0%, rgba(20, 10, 5, 0.94) 75%, rgba(10, 5, 2, 0.98) 100%);
+  border: 3px solid var(--color-gold);
+  box-shadow: 
+    0 0 20px rgba(0, 0, 0, 0.85),
+    inset 0 0 16px rgba(255, 215, 0, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.joystick-base.active {
+  border-color: #fff;
+  box-shadow: 
+    0 0 24px rgba(0, 0, 0, 0.9),
+    0 0 14px rgba(255, 215, 0, 0.6),
+    inset 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.joystick-ring {
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 215, 0, 0.35);
+  pointer-events: none;
+}
+
+.joystick-arrows {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.j-arrow {
+  position: absolute;
+  font-size: 10px;
+  font-family: var(--font-pixel);
+  color: rgba(230, 197, 135, 0.4);
+  line-height: 1;
+  user-select: none;
+  transition: all 0.1s ease;
+}
+
+.j-arrow-up {
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.j-arrow-down {
+  bottom: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.j-arrow-left {
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.j-arrow-right {
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.j-arrow-up.active {
+  color: #ffd700;
+  text-shadow: 0 0 8px #ffd700, 0 0 12px rgba(255, 215, 0, 0.8);
+  transform: translateX(-50%) scale(1.35);
+  opacity: 1;
+}
+
+.j-arrow-down.active {
+  color: #ffd700;
+  text-shadow: 0 0 8px #ffd700, 0 0 12px rgba(255, 215, 0, 0.8);
+  transform: translateX(-50%) scale(1.35);
+  opacity: 1;
+}
+
+.j-arrow-left.active {
+  color: #ffd700;
+  text-shadow: 0 0 8px #ffd700, 0 0 12px rgba(255, 215, 0, 0.8);
+  transform: translateY(-50%) scale(1.35);
+  opacity: 1;
+}
+
+.j-arrow-right.active {
+  color: #ffd700;
+  text-shadow: 0 0 8px #ffd700, 0 0 12px rgba(255, 215, 0, 0.8);
+  transform: translateY(-50%) scale(1.35);
+  opacity: 1;
+}
+
+.joystick-knob {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffd700 0%, #e6a817 40%, #b87b08 75%, #573a0c 100%);
+  border: 2.5px solid #fff;
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.8),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8),
+    0 0 8px rgba(255, 215, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.16s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.joystick-knob .knob-icon {
+  font-size: 22px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.7));
+  user-select: none;
+  pointer-events: none;
+}
+
+.joystick-base.active .joystick-knob {
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.8),
+    0 0 16px rgba(255, 215, 0, 0.8),
+    inset 0 2px 4px rgba(255, 255, 255, 0.95);
   border-color: #fff;
 }
 
@@ -1331,16 +1427,23 @@ canvas#gameCanvas {
     opacity: 0.95;
   }
 
-  .dpad-grid {
-    grid-template-columns: repeat(3, 44px);
-    grid-template-rows: repeat(3, 44px);
-    gap: 4px;
-    padding: 5px;
+  .joystick-zone {
+    width: 130px;
+    height: 130px;
   }
 
-  .dpad-btn {
-    font-size: 15px;
-    border-radius: 6px;
+  .joystick-base {
+    width: 118px;
+    height: 118px;
+  }
+
+  .joystick-knob {
+    width: 48px;
+    height: 48px;
+  }
+
+  .joystick-knob .knob-icon {
+    font-size: 19px;
   }
 
   .mobile-attack-panel {
@@ -1583,11 +1686,23 @@ canvas#gameCanvas {
   }
 
   /* Controls panels in landscape */
-  .dpad-grid {
-    grid-template-columns: repeat(3, 38px);
-    grid-template-rows: repeat(3, 38px);
-    gap: 3px;
-    padding: 4px;
+  .joystick-zone {
+    width: 110px;
+    height: 110px;
+  }
+
+  .joystick-base {
+    width: 100px;
+    height: 100px;
+  }
+
+  .joystick-knob {
+    width: 42px;
+    height: 42px;
+  }
+
+  .joystick-knob .knob-icon {
+    font-size: 16px;
   }
 
   .mobile-controls-panel {

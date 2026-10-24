@@ -623,6 +623,12 @@ class InputHandler {
       right: false
     };
 
+    // Virtual Joystick holati
+    this.joystickActive = false;
+    this.joystickX = 0;
+    this.joystickY = 0;
+    this.resetJoystickUI = null;
+
     this.setupKeyboard();
     this.setupTouchControls();
   }
@@ -696,116 +702,149 @@ class InputHandler {
   }
 
   setupTouchControls() {
-    const dpadGrid = document.querySelector('.dpad-grid');
-    const dpadBtns = {
-      up: document.getElementById('btn-up'),
-      down: document.getElementById('btn-down'),
-      left: document.getElementById('btn-left'),
-      right: document.getElementById('btn-right')
+    const zone = document.getElementById('joystick-zone');
+    const base = document.getElementById('joystick-base');
+    const knob = document.getElementById('joystick-knob');
+    const arrowUp = document.querySelector('.j-arrow-up');
+    const arrowDown = document.querySelector('.j-arrow-down');
+    const arrowLeft = document.querySelector('.j-arrow-left');
+    const arrowRight = document.querySelector('.j-arrow-right');
+
+    const updateArrows = (up, down, left, right) => {
+      if (arrowUp) arrowUp.classList.toggle('active', up);
+      if (arrowDown) arrowDown.classList.toggle('active', down);
+      if (arrowLeft) arrowLeft.classList.toggle('active', left);
+      if (arrowRight) arrowRight.classList.toggle('active', right);
     };
 
-    const clearDpad = () => {
+    const resetJoystick = () => {
       this.keys.up = false;
       this.keys.down = false;
       this.keys.left = false;
       this.keys.right = false;
-      Object.values(dpadBtns).forEach(b => b && b.classList.remove('pressed'));
+      this.joystickActive = false;
+      this.joystickX = 0;
+      this.joystickY = 0;
+
+      if (base) base.classList.remove('active');
+      if (knob) {
+        knob.style.transition = 'transform 0.16s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        knob.style.transform = 'translate3d(0, 0, 0)';
+      }
+      updateArrows(false, false, false, false);
     };
 
-    const updateDpadFromPoint = (clientX, clientY) => {
-      this.game.sound.init();
-      const el = document.elementFromPoint(clientX, clientY);
-      const targetBtn = el ? el.closest('.dpad-btn') : null;
+    this.resetJoystickUI = resetJoystick;
 
-      // Agar bevosita biror tugma ustida bo'lsa
-      if (targetBtn && targetBtn.id) {
-        const dir = targetBtn.id.replace('btn-', '');
-        ['up', 'down', 'left', 'right'].forEach(d => {
-          const isTarget = d === dir;
-          this.keys[d] = isTarget;
-          if (dpadBtns[d]) {
-            dpadBtns[d].classList.toggle('pressed', isTarget);
-          }
-        });
+    const updateFromPosition = (clientX, clientY) => {
+      if (!base || !knob) return;
+      this.game.sound.init();
+
+      const rect = base.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const dx = clientX - centerX;
+      const dy = clientY - centerY;
+      const distance = Math.hypot(dx, dy);
+
+      // Harakatlanish doirasi radiusi (asosning 35% qismi)
+      const maxRadius = Math.max(25, rect.width * 0.35);
+      let clampedX = dx;
+      let clampedY = dy;
+
+      if (distance > maxRadius) {
+        clampedX = (dx / distance) * maxRadius;
+        clampedY = (dy / distance) * maxRadius;
+      }
+
+      knob.style.transform = `translate3d(${clampedX}px, ${clampedY}px, 0)`;
+
+      // O'lik zona (deadzone) - bexosdan qaltirashni oldini olish
+      const deadzone = maxRadius * 0.22;
+      if (distance < deadzone) {
+        this.keys.up = false;
+        this.keys.down = false;
+        this.keys.left = false;
+        this.keys.right = false;
+        this.joystickActive = false;
+        this.joystickX = 0;
+        this.joystickY = 0;
+        updateArrows(false, false, false, false);
         return;
       }
 
-      // Agar D-pad chegarasi ichida barmoq surilayotgan bo'lsa (diagonal va burchaklar)
-      if (dpadGrid) {
-        const rect = dpadGrid.getBoundingClientRect();
-        if (
-          clientX >= rect.left && clientX <= rect.right &&
-          clientY >= rect.top && clientY <= rect.bottom
-        ) {
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-          const dx = clientX - cx;
-          const dy = clientY - cy;
-          const deadzone = 12;
+      // 360 gradusli analog vektor (-1 dan 1 gacha)
+      const normX = clampedX / maxRadius;
+      const normY = clampedY / maxRadius;
 
-          this.keys.left = dx < -deadzone;
-          this.keys.right = dx > deadzone;
-          this.keys.up = dy < -deadzone;
-          this.keys.down = dy > deadzone;
+      this.joystickActive = true;
+      this.joystickX = normX;
+      this.joystickY = normY;
 
-          if (dpadBtns.left) dpadBtns.left.classList.toggle('pressed', this.keys.left);
-          if (dpadBtns.right) dpadBtns.right.classList.toggle('pressed', this.keys.right);
-          if (dpadBtns.up) dpadBtns.up.classList.toggle('pressed', this.keys.up);
-          if (dpadBtns.down) dpadBtns.down.classList.toggle('pressed', this.keys.down);
-          return;
-        }
-      }
+      // 8 yo'nalishli raqamli tugmalarni ham yangilash
+      const threshold = 0.32;
+      this.keys.left = normX < -threshold;
+      this.keys.right = normX > threshold;
+      this.keys.up = normY < -threshold;
+      this.keys.down = normY > threshold;
 
-      clearDpad();
+      updateArrows(this.keys.up, this.keys.down, this.keys.left, this.keys.right);
     };
 
-    if (dpadGrid) {
+    if (zone && base && knob) {
       let activeTouchId = null;
 
-      dpadGrid.addEventListener('touchstart', (e) => {
+      zone.addEventListener('touchstart', (e) => {
         e.preventDefault();
         const touch = e.changedTouches[0];
         activeTouchId = touch.identifier;
-        updateDpadFromPoint(touch.clientX, touch.clientY);
+        base.classList.add('active');
+        knob.style.transition = 'none';
+        updateFromPosition(touch.clientX, touch.clientY);
       }, { passive: false });
 
-      dpadGrid.addEventListener('touchmove', (e) => {
-        e.preventDefault();
+      window.addEventListener('touchmove', (e) => {
+        if (activeTouchId === null) return;
         for (let i = 0; i < e.changedTouches.length; i++) {
           if (e.changedTouches[i].identifier === activeTouchId) {
-            updateDpadFromPoint(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+            updateFromPosition(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
             break;
           }
         }
       }, { passive: false });
 
       const handleTouchEnd = (e) => {
-        e.preventDefault();
+        if (activeTouchId === null) return;
         for (let i = 0; i < e.changedTouches.length; i++) {
           if (e.changedTouches[i].identifier === activeTouchId) {
             activeTouchId = null;
-            clearDpad();
+            resetJoystick();
             break;
           }
         }
       };
 
-      dpadGrid.addEventListener('touchend', handleTouchEnd, { passive: false });
-      dpadGrid.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+      window.addEventListener('touchend', handleTouchEnd, { passive: false });
+      window.addEventListener('touchcancel', handleTouchEnd, { passive: false });
 
-      // Sichqoncha bilan ham sinash imkoniyati
+      // Sichqoncha orqali sinab ko'rish imkoniyati (desktop kompyuterda ham)
       let isMouseDown = false;
-      dpadGrid.addEventListener('mousedown', (e) => {
+      zone.addEventListener('mousedown', (e) => {
         isMouseDown = true;
-        updateDpadFromPoint(e.clientX, e.clientY);
+        base.classList.add('active');
+        knob.style.transition = 'none';
+        updateFromPosition(e.clientX, e.clientY);
       });
       window.addEventListener('mousemove', (e) => {
-        if (isMouseDown) updateDpadFromPoint(e.clientX, e.clientY);
+        if (isMouseDown) {
+          updateFromPosition(e.clientX, e.clientY);
+        }
       });
       window.addEventListener('mouseup', () => {
         if (isMouseDown) {
           isMouseDown = false;
-          clearDpad();
+          resetJoystick();
         }
       });
     }
@@ -865,6 +904,12 @@ class InputHandler {
     this.keys.down = false;
     this.keys.left = false;
     this.keys.right = false;
+    this.joystickActive = false;
+    this.joystickX = 0;
+    this.joystickY = 0;
+    if (this.resetJoystickUI) {
+      this.resetJoystickUI();
+    }
   }
 }
 
@@ -1218,26 +1263,32 @@ class Player {
     let dx = 0;
     let dy = 0;
 
-    if (input.keys.left) dx -= 1;
-    if (input.keys.right) dx += 1;
-    if (input.keys.up) dy -= 1;
-    if (input.keys.down) dy += 1;
+    if (input.joystickActive) {
+      dx = input.joystickX;
+      dy = input.joystickY;
+    } else {
+      if (input.keys.left) dx -= 1;
+      if (input.keys.right) dx += 1;
+      if (input.keys.up) dy -= 1;
+      if (input.keys.down) dy += 1;
 
-    // Diagonali bo'yicha teng tezlik berish (normalizatsiya)
-    if (dx !== 0 && dy !== 0) {
-      const norm = Math.SQRT1_2;
-      dx *= norm;
-      dy *= norm;
+      // Diagonali bo'yicha teng tezlik berish (normalizatsiya)
+      if (dx !== 0 && dy !== 0) {
+        const norm = Math.SQRT1_2;
+        dx *= norm;
+        dy *= norm;
+      }
     }
 
-    this.isMoving = (dx !== 0 || dy !== 0);
+    this.isMoving = (Math.abs(dx) > 0.06 || Math.abs(dy) > 0.06);
 
     if (this.isMoving) {
       this.walkAnimTimer += dt * 10;
-      if (dx < 0) this.facing = 'left';
-      else if (dx > 0) this.facing = 'right';
-      else if (dy < 0) this.facing = 'up';
-      else if (dy > 0) this.facing = 'down';
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        this.facing = dx < 0 ? 'left' : 'right';
+      } else {
+        this.facing = dy < 0 ? 'up' : 'down';
+      }
     } else {
       this.walkAnimTimer = 0;
     }
